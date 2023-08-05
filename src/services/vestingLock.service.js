@@ -1,6 +1,6 @@
 // Dict imports
 const { vestingLocks: vestingModels } = require("../utils/dicts/chainToModelDict.js");
-const { vestingLocker: vestingContracts } = require("../utils/dicts/chainToContracts.js");
+const { vestingLocker: vestingContracts } = require("../utils/dicts/chainToContractsDict.js");
 
 async function getLock(req) {
   try {

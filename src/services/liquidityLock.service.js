@@ -1,6 +1,6 @@
 // Dict imports
 const { liquidityLocks: liquidityModels } = require("../utils/dicts/chainToModelDict.js");
-const { liquidityLocker: liquidityContracts } = require("../utils/dicts/chainToContracts.js");
+const { liquidityLocker: liquidityContracts } = require("../utils/dicts/chainToContractsDict.js");
 const web3Dict = require("../utils/dicts/chainToWeb3Dict.js");
 // Abi Imports
 const uniswapV2PairAbi = require("../abis/uniswapV2PairAbi.json");

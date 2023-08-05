@@ -1,6 +1,6 @@
 // Dict imports
 const { tokenLocks: tokenModels } = require("../utils/dicts/chainToModelDict.js");
-const { tokenLocker: tokenContracts } = require("../utils/dicts/chainToContracts.js");
+const { tokenLocker: tokenContracts } = require("../utils/dicts/chainToContractsDict.js");
 
 async function getLock(req) {
   try {
