@@ -11,12 +11,20 @@ const liquidityLockRouter = require("./src/routes/liquidityLocks.routes");
 const tokenLockRouter = require("./src/routes/tokenLocks.routes");
 const vestingLockRouter = require("./src/routes/vestingLocks.routes");
 const nftRouter = require("./src/routes/nft.routes");
+const whitelistRouter = require("./src/routes/whitelist.routes");
 
 // Global variables
-const { PORT, MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_SERVER, MLAB_DATABASE } = process.env;
+const { PORT, MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_SERVER, MLAB_DATABASE, MLAB_DATABASE_TEST, ENV } = process.env;
 
 const mongoose = require("mongoose");
-mongoose.connect(`mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_SERVER}/${MLAB_DATABASE}`);
+
+if (ENV === "TEST") {
+  mongoose.connect(`mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_SERVER}/${MLAB_DATABASE_TEST}`);
+}
+
+if (ENV === "PRODUCTION") {
+  mongoose.connect(`mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_SERVER}/${MLAB_DATABASE}`);
+}
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minutes
@@ -51,12 +59,13 @@ nftPayout();
 startChainPrice();
 startGasPrice();
 
-app.use("/", chainRouter);
-app.use("/", helpersRouter);
-app.use("/", liquidityLockRouter);
-app.use("/", tokenLockRouter);
-app.use("/", vestingLockRouter);
-app.use("/", nftRouter);
+app.use("/chain-data", chainRouter);
+app.use("/util", helpersRouter);
+app.use("/liquidity-locker", liquidityLockRouter);
+app.use("/token-locker", tokenLockRouter);
+app.use("/vesting-locker", vestingLockRouter);
+app.use("/nft", nftRouter);
+app.use("/whitelist", whitelistRouter);
 
 // Server
 app.listen(PORT, () => {
