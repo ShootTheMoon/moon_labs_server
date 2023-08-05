@@ -6,7 +6,7 @@ const erc20abi = require("../../abis/erc20abi.json");
 
 // Utils Imports
 const { vestingLocks: vestingModels } = require("../dicts/chainToModelDict");
-const { vestingLocker: vestingContracts } = require("../dicts/chainToContracts");
+const { vestingLocker: vestingContracts } = require("../dicts/chainToContractsDict");
 const web3Dict = require("../dicts/chainToWeb3Dict");
 
 const ethEvents = async () => {
@@ -71,13 +71,13 @@ const handleNewBlocks = async (web3, chain, contract) => {
     if (event) {
       const info = await vestingLocksInfo.findOne({ chain: chain });
 
-      const fromBlock = event.number - info.lastScannedBlock > 10000 ? info.lastScannedBlock + 10000 : info.lastScannedBlock;
-      const toBlock = fromBlock == info.lastScannedBlock ? false : info.lastScannedBlock;
+      const fromBlock = info.lastScannedBlock;
+      const toBlock = event.number - info.lastScannedBlock > 5000 ? info.lastScannedBlock + 5000 : false;
 
       console.log(`Scanning Block: ${fromBlock} - Moon Vest (${chain})`);
       getEvents(fromBlock, toBlock, web3, chain, contract, schema);
 
-      info.lastScannedBlock = fromBlock == info.lastScannedBlock ? event.number : fromBlock;
+      info.lastScannedBlock = toBlock == false ? event.number : toBlock;
       info.save();
     }
     if (err) {
@@ -92,37 +92,33 @@ const getEvents = (fromBlock, toBlock, web3, chainId, contract, schema) => {
       fromBlock: fromBlock,
       toBlock: toBlock ? toBlock : "latest",
     })
-    .then((events) => {
+    .then(async (events) => {
       for (let event of events) {
-        console.log(event);
-        handleLockCreated(event, web3, chainId, contract, schema);
+        await handleLockCreated(event, web3, chainId, contract, schema);
       }
+
+      contract
+        .getPastEvents("TokensWithdrawn", {
+          fromBlock: fromBlock,
+          toBlock: toBlock ? toBlock : "latest",
+        })
+        .then((events) => {
+          for (let event of events) {
+            handleTokensWithdrawn(event, web3, contract, schema);
+          }
+        });
+
+      contract
+        .getPastEvents("LockTransferred", {
+          fromBlock: fromBlock,
+          toBlock: toBlock ? toBlock : "latest",
+        })
+        .then((events) => {
+          for (let event of events) {
+            handleLockTransferred(event, web3, contract, schema);
+          }
+        });
     });
-
-  setTimeout(() => {
-    contract
-      .getPastEvents("TokensWithdrawn", {
-        fromBlock: fromBlock,
-        toBlock: "latest",
-      })
-      .then((events) => {
-        for (let event of events) {
-          handleTokensWithdrawn(event, web3, contract, schema);
-        }
-      });
-
-    contract
-      .getPastEvents("LockTransferred", {
-        fromBlock: fromBlock,
-        toBlock: "latest",
-      })
-      .then((events) => {
-        for (let event of events) {
-          console.log(event);
-          handleLockTransferred(event, web3, contract, schema);
-        }
-      });
-  }, 10000);
 };
 
 const handleLockCreated = async (event, web3, chainId, contract, schema) => {
@@ -133,12 +129,11 @@ const handleLockCreated = async (event, web3, chainId, contract, schema) => {
   const hash = event.transactionHash;
   const tokenAddress = event.returnValues.token;
   for (let i = numOfLocks - 1; i >= 0; i--) {
-    // Check of lock already exists
     if (!(await schema.exists({ nonce: nonce - i }))) {
       // Get lock info from token locker contract
       const lock = await contract.methods.getInstance(nonce - i).call();
       // If lock is deleted break
-      if (lock[0] === "0x0000000000000000000000000000000000000000") return;
+      if (lock[0] === "0x0000000000000000000000000000000000000000") continue;
 
       const tokenContract = new web3.eth.Contract(erc20abi, lock[0]);
 
@@ -180,7 +175,7 @@ const handleTokensWithdrawn = async (event, web3, contract, schema) => {
 
   const lock = await schema.findOne({ nonce: nonce });
   const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash });
-  
+
   if (lock && !found) {
     const withdrawer = event.returnValues.owner;
     const amount = event.returnValues.amount;

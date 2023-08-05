@@ -3,7 +3,7 @@ const Web3 = require("web3");
 const Web3WsProvider = require("web3-providers-ws");
 
 // Global variables
-const { QUICKNODE_WSS_ETH, QUICKNODE_WSS_ARBITRUM, QUICKNODE_WSS_GOERLI, QUICKNODE_WSS_AVALANCHE, QUICKNODE_WSS_BSC, QUICKNODE_WSS_BSC_TESTNET } = process.env;
+const { WSS_ETH, WSS_ARBITRUM, WSS_GOERLI, WSS_AVALANCHE, WSS_BSC, WSS_BSCT } = process.env;
 
 // WSS
 const options = {
@@ -36,12 +36,12 @@ let web3_quicknode_goerli;
 let web3_quicknode_bsc_testnet;
 
 try {
-  const ws_quicknode_eth = new Web3WsProvider(`${QUICKNODE_WSS_ETH}`, options);
-  const ws_quicknode_arb = new Web3WsProvider(`${QUICKNODE_WSS_ARBITRUM}`, options);
-  const ws_quicknode_avalanche = new Web3WsProvider(`${QUICKNODE_WSS_AVALANCHE}`, options);
-  const ws_quicknode_bsc = new Web3WsProvider(`${QUICKNODE_WSS_BSC}`, options);
-  const ws_quicknode_goerli = new Web3WsProvider(`${QUICKNODE_WSS_GOERLI}`, options);
-  const ws_quicknode_bsc_testnet = new Web3WsProvider(`${QUICKNODE_WSS_BSC_TESTNET}`, options);
+  const ws_quicknode_eth = new Web3WsProvider(`${WSS_ETH}`, options);
+  const ws_quicknode_arb = new Web3WsProvider(`${WSS_ARBITRUM}`, options);
+  const ws_quicknode_avalanche = new Web3WsProvider(`${WSS_AVALANCHE}`, options);
+  const ws_quicknode_bsc = new Web3WsProvider(`${WSS_BSC}`, options);
+  const ws_quicknode_goerli = new Web3WsProvider(`${WSS_GOERLI}`, options);
+  const ws_quicknode_bsc_testnet = new Web3WsProvider(`${WSS_BSCT}`, options);
 
   web3_quicknode_eth = new Web3(ws_quicknode_eth);
   web3_quicknode_arb = new Web3(ws_quicknode_arb);

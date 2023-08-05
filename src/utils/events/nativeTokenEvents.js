@@ -6,6 +6,8 @@ const { MLAB_TOKEN_ADDRESS } = process.env;
 
 const { web3 } = require("../web3Helpers");
 
+let totalPayout = 0n;
+
 const nftPayout = async () => {
   const contract = new web3.eth.eth.Contract(erc20abi, MLAB_TOKEN_ADDRESS.toLowerCase());
 
@@ -21,13 +23,15 @@ const nftPayout = async () => {
     if (event) {
       const payoutInfo = await nftPayoutsInfo.findOne();
 
-      const fromBlock = event.number - payoutInfo.lastScannedBlock > 10000 ? payoutInfo.lastScannedBlock + 10000 : payoutInfo.lastScannedBlock;
-      const toBlock = fromBlock == payoutInfo.lastScannedBlock ? false : payoutInfo.lastScannedBlock;
+      totalPayout = BigInt(payoutInfo.totalPayout);
+
+      const fromBlock = payoutInfo.lastScannedBlock;
+      const toBlock = event.number - payoutInfo.lastScannedBlock > 5000 ? payoutInfo.lastScannedBlock + 5000 : false;
 
       console.log(`Scanning Block: ${fromBlock} - Token Events`);
       getEvent(fromBlock, toBlock);
 
-      payoutInfo.lastScannedBlock = fromBlock == payoutInfo.lastScannedBlock ? event.number : fromBlock;
+      payoutInfo.lastScannedBlock = toBlock == false ? event.number : toBlock;
       payoutInfo.save();
     }
     if (err) {
@@ -36,11 +40,16 @@ const nftPayout = async () => {
   });
 
   const getEvent = async (fromBlock, toBlock) => {
-    contract.getPastEvents("DistributeNftPayout", { fromBlock: fromBlock, toBlock: toBlock ? toBlock : "latest" }).then((events) => {
-      for (let event of events) {
-        handleNftPayouts(event);
-      }
-    });
+    contract
+      .getPastEvents("DistributeNftPayout", {
+        fromBlock: fromBlock,
+        toBlock: toBlock ? toBlock : "latest",
+      })
+      .then(async (events) => {
+        for (let event of events) {
+          await handleNftPayouts(event);
+        }
+      });
   };
 
   const handleNftPayouts = async (event) => {
@@ -49,42 +58,45 @@ const nftPayout = async () => {
     const hash = event.transactionHash;
     const blockNumber = event.blockNumber;
     const { timestamp } = await web3.eth.eth.getBlock(blockNumber);
-
+    // Amount for each nft payout
+    const payout = BigInt(event.returnValues.payout);
     let lastNonce = 0;
-    let totalPayout = 0n;
-
     for (let i = 0; i < event.returnValues.index.length; i++) {
-      const nonce = event.returnValues.index[i];
-
-      if (nonce == 0) continue;
-
-      lastNonce = lastNonce < nonce ? nonce : lastNonce;
-      lastNonce = lastNonce <= 500 ? lastNonce : 1;
-
-      const owner = event.returnValues.to[i];
-      const payout = BigInt(event.returnValues.payout);
-
-      let nft = await nftPayouts.findOne({ nonce: nonce });
-      const found = await nftPayouts.exists({ "payouts.hash": hash });
-
-      if (!nft) {
-        nftPayouts.create({
-          nonce: nonce,
-          payouts: [{ owner: owner.toLowerCase(), amount: payout, time: timestamp, hash: hash }],
-        });
-        totalPayout += payout;
-      } else if (nft && !found) {
-        nft.payouts.push({ owner: owner.toLowerCase(), amount: payout, time: timestamp, hash: hash });
-        nft.save();
-        totalPayout += payout;
-      }
+      await handleNftIndex(i, event, hash, timestamp, payout, lastNonce, payoutInfo);
     }
-    if (totalPayout > 0n) payoutInfo.totalPayout = String(totalPayout + BigInt(payoutInfo.totalPayout));
-
-    if (lastNonce > 0) payoutInfo.lastNonce = lastNonce;
-
-    payoutInfo.save();
   };
 };
 
+async function handleNftIndex(i, event, hash, timestamp, payout, lastNonce, payoutInfo) {
+  const nonce = event.returnValues.index[i];
+
+  if (nonce == 0) return;
+
+  lastNonce = lastNonce > nonce ? lastNonce : nonce;
+
+  const owner = event.returnValues.to[i];
+
+  let nft = await nftPayouts.findOne({ nonce: nonce });
+  const found = await nftPayouts.exists({ "payouts.hash": hash });
+
+  if (!nft) {
+    nftPayouts.create({
+      nonce: nonce,
+      payouts: [{ owner: owner.toLowerCase(), amount: payout, time: timestamp, hash: hash }],
+    });
+
+    totalPayout += payout;
+    payoutInfo.totalPayout = String(totalPayout);
+    payoutInfo.lastNonce = lastNonce;
+    payoutInfo.save();
+  } else if (nft && !found) {
+    nft.payouts.push({ owner: owner.toLowerCase(), amount: payout, time: timestamp, hash: hash });
+    nft.save();
+
+    totalPayout += payout;
+    payoutInfo.totalPayout = String(totalPayout);
+    payoutInfo.lastNonce = lastNonce;
+    payoutInfo.save();
+  }
+}
 module.exports = nftPayout;

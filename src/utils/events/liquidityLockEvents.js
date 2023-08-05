@@ -8,7 +8,7 @@ const uniswapV2PairAbi = require("../../abis/uniswapV2PairAbi.json");
 // Utils Imports
 const { dexFactories } = require("../dicts/chainToAmmDict");
 const { liquidityLocks: liquidityModels } = require("../dicts/chainToModelDict");
-const { liquidityLocker: liquidityContracts } = require("../dicts/chainToContracts");
+const { liquidityLocker: liquidityContracts } = require("../dicts/chainToContractsDict");
 const web3Dict = require("../dicts/chainToWeb3Dict");
 
 const ethEvents = async () => {
@@ -73,13 +73,13 @@ const handleNewBlocks = async (web3, chain, contract) => {
     if (event) {
       const info = await liquidityLocksInfo.findOne({ chain: chain });
 
-      const fromBlock = event.number - info.lastScannedBlock > 10000 ? info.lastScannedBlock + 10000 : info.lastScannedBlock;
-      const toBlock = fromBlock == info.lastScannedBlock ? false : info.lastScannedBlock;
+      const fromBlock = info.lastScannedBlock;
+      const toBlock = event.number - info.lastScannedBlock > 5000 ? info.lastScannedBlock + 5000 : false;
 
       console.log(`Scanning Block: ${fromBlock} - Moon Lock Liquidity (${chain})`);
       getEvents(fromBlock, toBlock, web3, chain, contract, schema);
 
-      info.lastScannedBlock = fromBlock == info.lastScannedBlock ? event.number : fromBlock;
+      info.lastScannedBlock = toBlock == false ? event.number : toBlock;
       info.save();
     }
     if (err) {
@@ -94,57 +94,55 @@ const getEvents = (fromBlock, toBlock, web3, chainId, contract, schema) => {
       fromBlock: fromBlock,
       toBlock: toBlock ? toBlock : "latest",
     })
-    .then((events) => {
+    .then(async (events) => {
       for (let event of events) {
-        handleLockCreated(event, web3, chainId, contract, schema);
+        await handleLockCreated(event, web3, chainId, contract, schema);
       }
     });
 
-  setTimeout(() => {
-    contract
-      .getPastEvents("TokensWithdrawn", {
-        fromBlock: fromBlock,
-        toBlock: "latest",
-      })
-      .then((events) => {
-        for (let event of events) {
-          handleTokensWithdrawn(event, web3, contract, schema);
-        }
-      });
+  contract
+    .getPastEvents("TokensWithdrawn", {
+      fromBlock: fromBlock,
+      toBlock: toBlock ? toBlock : "latest",
+    })
+    .then((events) => {
+      for (let event of events) {
+        handleTokensWithdrawn(event, web3, contract, schema);
+      }
+    });
 
-    contract
-      .getPastEvents("LockTransferred", {
-        fromBlock: fromBlock,
-        toBlock: "latest",
-      })
-      .then((events) => {
-        for (let event of events) {
-          handleLockTransferred(event, web3, contract, schema);
-        }
-      });
+  contract
+    .getPastEvents("LockTransferred", {
+      fromBlock: fromBlock,
+      toBlock: toBlock ? toBlock : "latest",
+    })
+    .then((events) => {
+      for (let event of events) {
+        handleLockTransferred(event, web3, contract, schema);
+      }
+    });
 
-    contract
-      .getPastEvents("LockRelocked", {
-        fromBlock: fromBlock,
-        toBlock: "latest",
-      })
-      .then((events) => {
-        for (let event of events) {
-          handleLockRelocked(event, web3, contract, schema);
-        }
-      });
+  contract
+    .getPastEvents("LockRelocked", {
+      fromBlock: fromBlock,
+      toBlock: toBlock ? toBlock : "latest",
+    })
+    .then((events) => {
+      for (let event of events) {
+        handleLockRelocked(event, web3, contract, schema);
+      }
+    });
 
-    contract
-      .getPastEvents("LockSplit", {
-        fromBlock: fromBlock,
-        toBlock: "latest",
-      })
-      .then((events) => {
-        for (let event of events) {
-          handleLockSplit(event, web3, chainId, contract, schema);
-        }
-      });
-  }, 10000);
+  contract
+    .getPastEvents("LockSplit", {
+      fromBlock: fromBlock,
+      toBlock: toBlock ? toBlock : "latest",
+    })
+    .then((events) => {
+      for (let event of events) {
+        handleLockSplit(event, web3, chainId, contract, schema);
+      }
+    });
 };
 
 const handleLockCreated = async (event, web3, chainId, contract, schema) => {
@@ -154,7 +152,6 @@ const handleLockCreated = async (event, web3, chainId, contract, schema) => {
   const hash = event.transactionHash;
   const pairAddress = event.returnValues.token;
 
-  let dex;
   let token0;
   let token1;
 
@@ -235,8 +232,6 @@ const handleTokensWithdrawn = async (event, web3, contract, schema) => {
 
   const lock = await schema.findOne({ nonce: nonce });
   const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash });
-
-  console.log(await contract.methods.getLock(nonce).call());
 
   if (lock && !found) {
     const withdrawer = event.returnValues.withdrawer;
