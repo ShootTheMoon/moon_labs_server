@@ -5,10 +5,10 @@ const router = express.Router();
 const { get_addressPayoutData, get_globalPayoutData, get_nftBalance } = require("../controllers/nft.controller");
 
 // GET
-router.get("/nft-global-data", get_globalPayoutData);
+router.get("/global-data", get_globalPayoutData);
 
-router.get("/nft-address-data", get_addressPayoutData);
+router.get("/address-data", get_addressPayoutData);
 
-router.get("/nft-balance", get_nftBalance);
+router.get("/balance", get_nftBalance);
 
 module.exports = router;

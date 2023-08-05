@@ -5,10 +5,10 @@ const router = express.Router();
 const { get_vestingLock, get_vestingLockHeaders, get_vestingLockCount } = require("../controllers/vestingLocks.controller");
 
 // GET
-router.get("/vesting-lock", get_vestingLock);
+router.get("/lock", get_vestingLock);
 
-router.get("/vesting-lock-headers", get_vestingLockHeaders);
+router.get("/lock-headers", get_vestingLockHeaders);
 
-router.get("/vesting-lock-count", get_vestingLockCount);
+router.get("/lock-count", get_vestingLockCount);
 
 module.exports = router;
