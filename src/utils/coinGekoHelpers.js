@@ -1,28 +1,23 @@
 // Library Imports
 const axios = require("axios");
-
-const createTokenLockSchema = require("../../schemas/moonLockToken/tokenLock");
-
-const tokenLocksEth = createTokenLockSchema("tokenLocksEth");
-const tokenLocksGoerli = createTokenLockSchema("tokenLocksGoerli");
+// Model Imports
+const metaData = require("../models/metaData");
 
 const handleCoinGekoLogos = async (address, chain) => {
-  let found = false;
-  if (chain == 1) {
-    found = await tokenLocksEth.exists({ "tokenInfo.address": address, "tokenInfo.logo": { $ne: null } });
-    if (found) return (await tokenLocksEth.findOne({ "tokenInfo.address": address })).tokenInfo.logo;
-  } else if (chain == 5) {
-    found = await tokenLocksGoerli.exists({ "tokenInfo.address": address, "tokenInfo.logo": { $ne: null } });
-    if (found) return (await tokenLocksGoerli.findOne({ "tokenInfo.address": address })).tokenInfo.logo;
-  }
+  try {
+    const found = await metaData.exists({ chain: chain, address: address });
+    if (!found) {
+      try {
+        const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`);
 
-  if (!found) {
-    try {
-      return (await axios.get(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`)).data.image.large;
-    } catch (err) {
-      return null;
+        metaData.create({ chain: chain, address: address.toLowerCase(), coinGeckoLogoLarge: response.data?.image.large, coinGeckoLogoSmall: response.data?.image.small });
+      } catch (err) {
+        console.log(err);
+      }
     }
+  } catch (err) {
+    console.log(err);
   }
 };
 
-module.exports = handleCoinGekoLogos;
+module.exports = { handleCoinGekoLogos };
