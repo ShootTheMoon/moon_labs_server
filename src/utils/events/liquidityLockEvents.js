@@ -6,6 +6,9 @@ const erc20abi = require("../../abis/erc20abi.json");
 const uniswapV2PairAbi = require("../../abis/uniswapV2PairAbi.json");
 
 // Utils Imports
+const { handleCoinGekoLogos } = require("../coinGekoHelpers");
+
+// Dict Imports
 const { dexFactories } = require("../dicts/chainToAmmDict");
 const { liquidityLocks: liquidityModels } = require("../dicts/chainToModelDict");
 const { liquidityLocker: liquidityContracts } = require("../dicts/chainToContractsDict");
@@ -160,6 +163,9 @@ const handleLockCreated = async (event, web3, chainId, contract, schema) => {
     const token0Contract = new web3.eth.Contract(erc20abi, await pairContract.methods.token0().call());
     const token1Contract = new web3.eth.Contract(erc20abi, await pairContract.methods.token1().call());
 
+    handleCoinGekoLogos(token0Contract._address, chainId);
+    handleCoinGekoLogos(token1Contract._address, chainId);
+
     const getDexFactory = async (pairAddress, token0, token1) => {
       const chainFactories = dexFactories[chainId];
       for (let factory of chainFactories) {
@@ -177,8 +183,8 @@ const handleLockCreated = async (event, web3, chainId, contract, schema) => {
       return;
     }
 
-    token0 = { address: token0Contract._address, symbol: await token0Contract.methods.symbol().call(), name: await token0Contract.methods.name().call() };
-    token1 = { address: token1Contract._address, symbol: await token1Contract.methods.symbol().call(), name: await token1Contract.methods.name().call() };
+    token0 = { address: token0Contract._address.toLowerCase(), symbol: await token0Contract.methods.symbol().call(), name: await token0Contract.methods.name().call() };
+    token1 = { address: token1Contract._address.toLowerCase(), symbol: await token1Contract.methods.symbol().call(), name: await token1Contract.methods.name().call() };
   } catch (err) {
     console.log(err);
     return;

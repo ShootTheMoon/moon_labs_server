@@ -5,6 +5,9 @@ const vestingLocksInfo = require("../../models/vestingLocks/vestingLocksInfo");
 const erc20abi = require("../../abis/erc20abi.json");
 
 // Utils Imports
+const { handleCoinGekoLogos } = require("../coinGekoHelpers");
+
+// Dict Imports
 const { vestingLocks: vestingModels } = require("../dicts/chainToModelDict");
 const { vestingLocker: vestingContracts } = require("../dicts/chainToContractsDict");
 const web3Dict = require("../dicts/chainToWeb3Dict");
@@ -128,6 +131,8 @@ const handleLockCreated = async (event, web3, chainId, contract, schema) => {
   const blockNumber = event.blockNumber;
   const hash = event.transactionHash;
   const tokenAddress = event.returnValues.token;
+
+  handleCoinGekoLogos(tokenAddress, chainId);
   for (let i = numOfLocks - 1; i >= 0; i--) {
     if (!(await schema.exists({ nonce: nonce - i }))) {
       // Get lock info from token locker contract
