@@ -2,6 +2,8 @@
 const { web3 } = require("../utils/web3Helpers");
 const { checkValidWallet } = require("../utils/walletHelpers");
 const { price } = require("../utils/priceHelpers");
+// Service Imports
+const { getMetaDataLogo } = require("../services/helpers.service");
 
 // GET
 async function get_mlabPrice(req, res, next) {
@@ -27,4 +29,12 @@ async function get_validWallet(req, res, next) {
   }
 }
 
-module.exports = { get_mlabPrice, get_validWallet };
+async function get_tokenLogo(req, res, next) {
+  try {
+    res.json(await getMetaDataLogo(req));
+  } catch (err) {
+    console.error(`Error with valid wallet controller: ${err.message}`);
+    next(err);
+  }
+}
+module.exports = { get_mlabPrice, get_validWallet, get_tokenLogo };
