@@ -183,8 +183,8 @@ const handleLockCreated = async (event, web3, chainId, contract, schema) => {
       return;
     }
 
-    token0 = { address: token0Contract._address.toLowerCase(), symbol: await token0Contract.methods.symbol().call(), name: await token0Contract.methods.name().call() };
-    token1 = { address: token1Contract._address.toLowerCase(), symbol: await token1Contract.methods.symbol().call(), name: await token1Contract.methods.name().call() };
+    token0 = { address: token0Contract._address.toLowerCase(), symbol: await token0Contract.methods.symbol().call(), name: await token0Contract.methods.name().call(), decimals: await token0Contract.methods.decimals().call() };
+    token1 = { address: token1Contract._address.toLowerCase(), symbol: await token1Contract.methods.symbol().call(), name: await token1Contract.methods.name().call(), decimals: await token1Contract.methods.decimals().call() };
   } catch (err) {
     console.log(err);
     return;
