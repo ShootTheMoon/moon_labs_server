@@ -35,10 +35,8 @@ async function getLock(req) {
       for (let lock of relatedLocks) {
         totalLocked += BigInt((await liquidityLockerContract.methods.getLock(lock.nonce).call())[2]) - BigInt(await liquidityLockerContract.methods.getClaimableTokens(lock.nonce).call());
       }
-      // BigInt cannot be returned so must convert to string
-      totalLocked = totalLocked.toString();
 
-      return { liquidityLock, unlockedTokens, totalSupply, totalLocked };
+      return { liquidityLock, unlockedTokens, totalSupply, totalLocked: String(totalLocked) };
     }
 
     return { err: "Invalid query parameters" };
@@ -71,7 +69,7 @@ async function getLockHeaders(req) {
       const liquidityLocks = await liquidityModels[chain]
         .find(
           { "lockInfo.currentAmount": { $ne: deleted.toLowerCase() == "true" ? "-1" : "0" }, "lockInfo.owner": owner ? { $eq: owner.toLowerCase() } : { $ne: "-1" }, "tokenInfo.address": address ? { $eq: address.toLowerCase() } : { $ne: "-1" } },
-          { nonce: 1, chain: 1, dex: 1, token0: 1, token1: 1, tokenInfo: 1, lockInfo: { owner: 1, withdrawalAddress: 1, currentAmount: 1, startDate: 1, endDate: 1, creation: 1 } }
+          { nonce: 1, chain: 1, dex: 1, token0: 1, token1: 1, tokenInfo: 1, lockInfo: { owner: 1, withdrawalAddress: 1, currentAmount: 1, unlockDate: 1, creation: 1 } }
         )
         .sort({ nonce: -1 })
         .skip(from)
@@ -119,4 +117,48 @@ async function getLockCount(req) {
   }
 }
 
-module.exports = { getLock, getLockHeaders, getLockCount };
+async function getLockedPairData(req) {
+  try {
+    // Chain of the desired pair
+    const chain = req.query.chain;
+    // Address of the desired pair
+    const address = req.query.address;
+
+    // Get all locks with pair address
+    const liquidityLocks = await liquidityModels[chain].find({ "tokenInfo.address": address }, { nonce: 1, "lockInfo.currentAmount": 1, "lockInfo.unlockDate": 1 });
+
+    if (liquidityLocks.length > 0) {
+      // Get web3 instance
+      const web3 = web3Dict[chain];
+      // Create pair contract from token address
+      const pairContract = new web3.eth.Contract(uniswapV2PairAbi, address);
+
+      // Get liquidity locker contract
+      const liquidityLockerContract = liquidityContracts[chain];
+
+      // We need total supply and unlocked to calculate total locked tokens
+      const totalSupply = BigInt(await pairContract.methods.totalSupply().call());
+
+      const locks = [];
+      let totalLocked = 0n;
+
+      for (let lock of liquidityLocks) {
+        // We want to subtract the number of claimable tokens from the current amount of tokens in the lock to to get the amount of locked tokens
+        const lockedTokens = BigInt((await liquidityLockerContract.methods.getLock(lock.nonce).call())[2]) - BigInt(await liquidityLockerContract.methods.getClaimableTokens(lock.nonce).call());
+
+        locks.push({ percentLocked: (Number(lockedTokens) / Number(totalSupply)) * 100, amountLocked: String(lockedTokens), unlockDate: lock.lockInfo.unlockDate });
+
+        totalLocked += lockedTokens;
+      }
+
+      return { percentLocked: (Number(totalLocked) / Number(totalSupply)) * 100, totalSupply: String(totalSupply), totalLocked: String(totalLocked), locks: locks };
+    }
+
+    return { err: "No locks found" };
+  } catch (err) {
+    console.log(err);
+    return { err: "Err :(" };
+  }
+}
+
+module.exports = { getLock, getLockHeaders, getLockCount, getLockedPairData };

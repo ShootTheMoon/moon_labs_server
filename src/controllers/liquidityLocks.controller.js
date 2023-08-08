@@ -29,4 +29,13 @@ async function get_liquidityLockCount(req, res, next) {
   }
 }
 
-module.exports = { get_liquidityLock, get_liquidityLockHeaders, get_liquidityLockCount };
+async function get_lockedPairData(req, res, next) {
+  try {
+    res.json(await liquidityLocks.getLockedPairData(req));
+  } catch (err) {
+    console.error(`Error with liquidity lock count controller: ${err.message}`);
+    next(err);
+  }
+}
+
+module.exports = { get_liquidityLock, get_liquidityLockHeaders, get_liquidityLockCount, get_lockedPairData };
