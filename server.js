@@ -66,6 +66,7 @@ app.use("/token-locker", tokenLockRouter);
 app.use("/vesting-locker", vestingLockRouter);
 app.use("/nft", nftRouter);
 app.use("/whitelist", whitelistRouter);
+app.use("/images", express.static("./src/images"));
 
 // Server
 app.listen(PORT, () => {

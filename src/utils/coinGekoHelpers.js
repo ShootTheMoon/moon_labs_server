@@ -12,8 +12,10 @@ const handleCoinGekoLogos = async (address, chain) => {
 
         metaData.create({ chain: chain, address: address.toLowerCase(), coinGeckoLogoLarge: response.data?.image.large, coinGeckoLogoSmall: response.data?.image.small });
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       }
+    } else {
+      console.log("exists");
     }
   } catch (err) {
     console.log(err);
