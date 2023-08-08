@@ -1,3 +1,5 @@
+// Utils imports
+const { formatToDecimals } = require("../utils/numberHelpers");
 // Dict imports
 const { liquidityLocks: liquidityModels } = require("../utils/dicts/chainToModelDict.js");
 const { liquidityLocker: liquidityContracts } = require("../utils/dicts/chainToContractsDict.js");
@@ -138,6 +140,7 @@ async function getLockedPairData(req) {
 
       // We need total supply and unlocked to calculate total locked tokens
       const totalSupply = BigInt(await pairContract.methods.totalSupply().call());
+      const decimals = liquidityLocks[0].tokenInfo.decimals;
 
       const locks = [];
       let totalLocked = 0n;
@@ -146,12 +149,12 @@ async function getLockedPairData(req) {
         // We want to subtract the number of claimable tokens from the current amount of tokens in the lock to to get the amount of locked tokens
         const lockedTokens = BigInt((await liquidityLockerContract.methods.getLock(lock.nonce).call())[2]) - BigInt(await liquidityLockerContract.methods.getClaimableTokens(lock.nonce).call());
 
-        locks.push({ percentLocked: (Number(lockedTokens) / Number(totalSupply)) * 100, amountLocked: String(lockedTokens), unlockDate: lock.lockInfo.unlockDate });
+        locks.push({ percentLocked: (Number(lockedTokens) / Number(totalSupply)) * 100, amountLocked: formatToDecimals(lockedTokens, decimals), unlockDate: lock.lockInfo.unlockDate });
 
         totalLocked += lockedTokens;
       }
 
-      return { percentLocked: (Number(totalLocked) / Number(totalSupply)) * 100, totalSupply: String(totalSupply), totalLocked: String(totalLocked), locks: locks };
+      return { percentLocked: (Number(totalLocked) / Number(totalSupply)) * 100, totalSupply: formatToDecimals(totalSupply, decimals), totalLocked: formatToDecimals(totalLocked, decimals), locks: locks };
     }
 
     return { err: "No locks found" };
