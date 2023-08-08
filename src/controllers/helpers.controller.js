@@ -33,7 +33,7 @@ async function get_tokenLogo(req, res, next) {
   try {
     res.json(await getMetaDataLogo(req));
   } catch (err) {
-    console.error(`Error with valid wallet controller: ${err.message}`);
+    console.error(`Error with token logo controller: ${err.message}`);
     next(err);
   }
 }
