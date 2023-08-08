@@ -50,8 +50,8 @@ const createLiquidityLockSchema = (name) => {
       nonce: { type: Number, required: true },
       chain: { type: Number, required: true },
       dex: { type: String, require: true },
-      token0: { address: { type: String, require: true }, symbol: { type: String, require: true }, name: { type: String, require: true } },
-      token1: { address: { type: String, require: true }, symbol: { type: String, require: true }, name: { type: String, require: true } },
+      token0: { address: { type: String, require: true }, symbol: { type: String, require: true }, name: { type: String, require: true }, decimals: { type: Number, require: true } },
+      token1: { address: { type: String, require: true }, symbol: { type: String, require: true }, name: { type: String, require: true }, decimals: { type: Number, require: true } },
       tokenInfo: {
         address: { type: String, required: true },
         name: { type: String, required: true },
