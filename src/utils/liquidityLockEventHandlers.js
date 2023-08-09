@@ -2,6 +2,9 @@
 const erc20abi = require("../abis/erc20abi.json");
 const uniswapV2PairAbi = require("../abis/uniswapV2PairAbi.json");
 
+// Model Imports
+const liquidityLocksInfo = require("../models/liquidityLocks/liquidityLocksInfo");
+
 // Utils Imports
 const { handleCoinGekoLogos } = require("./coinGekoHelpers");
 
@@ -330,6 +333,34 @@ async function handleLiquidityLockSplitRevert(event, web3, chainId, contract, sc
   }
 }
 
+async function handleTokensBurn(event, web3, chainId, contract, schema) {
+  const amount = event.returnValues.amount;
+  const hash = event.transactionHash;
+
+  const lockInfo = await liquidityLocksInfo.findOne({ chain: chainId });
+  const found = await liquidityLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash });
+  if (lockInfo && !found) {
+    lockInfo.tokenBurns.push({ amount: amount, hash: hash });
+
+    lockInfo.save();
+  }
+}
+
+async function handleTokensBurnRevert(event, web3, chainId, contract, schema) {
+  const hash = event.transactionHash;
+
+  const lockInfo = await liquidityLocksInfo.findOne({ chain: chainId });
+  const found = await liquidityLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash });
+  if (lockInfo && found) {
+    // Find the burn instance and remove from database
+    for (let [i, burn] of lockInfo.tokenBurns.entries()) {
+      if (burn.hash == hash) lockInfo.tokenBurns.splice(i, 1);
+    }
+
+    lockInfo.save();
+  }
+}
+
 module.exports = {
   handleLiquidityLockCreation,
   handleLiquidityLockCreationRevert,
@@ -341,4 +372,6 @@ module.exports = {
   handleLiquidityLockRelockRevert,
   handleLiquidityLockSplit,
   handleLiquidityLockSplitRevert,
+  handleTokensBurn,
+  handleTokensBurnRevert,
 };

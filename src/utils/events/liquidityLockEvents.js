@@ -14,6 +14,8 @@ const {
   handleLiquidityLockRelockRevert,
   handleLiquidityLockSplit,
   handleLiquidityLockSplitRevert,
+  handleTokensBurn,
+  handleTokensBurnRevert,
 } = require("../liquidityLockEventHandlers");
 
 // Dict Imports
@@ -46,6 +48,11 @@ const eventList = [
     name: "LockSplit",
     creator: handleLiquidityLockSplit,
     reverter: handleLiquidityLockSplitRevert,
+  },
+  {
+    name: "TokensBurned",
+    creator: handleTokensBurn,
+    reverter: handleTokensBurnRevert,
   },
 ];
 

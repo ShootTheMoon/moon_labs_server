@@ -17,6 +17,8 @@ const {
   handleTokenLockWithdrawTransferRevert,
   handleTokenLockWithdrawal,
   handleTokenLockWithdrawalRevert,
+  handleTokensBurn,
+  handleTokensBurnRevert,
 } = require("../tokenLockEventHandlers");
 
 // Dict Imports
@@ -54,6 +56,11 @@ const eventList = [
     name: "LockSplit",
     creator: handleTokenLockSplit,
     reverter: handleTokenLockSplitRevert,
+  },
+  {
+    name: "TokensBurned",
+    creator: handleTokensBurn,
+    reverter: handleTokensBurnRevert,
   },
 ];
 

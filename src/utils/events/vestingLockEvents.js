@@ -3,7 +3,7 @@ const vestingLocksInfo = require("../../models/vestingLocks/vestingLocksInfo");
 
 // Utils Helpers
 const { setListeners, getEvents } = require("../eventHelpers");
-const { handleVestingLockCreation, handleTokenLockCreationRevert, handleVestingLockWithdrawal, handleVestingLockWithdrawalRevert, handleVestingLockTransfer, handleVestingLockTransferRevert } = require("../vestingLockEventHandlers");
+const { handleVestingLockCreation, handleTokenLockCreationRevert, handleVestingLockWithdrawal, handleVestingLockWithdrawalRevert, handleVestingLockTransfer, handleVestingLockTransferRevert, handleTokensBurn, handleTokensBurnRevert } = require("../vestingLockEventHandlers");
 
 // Dict Imports
 const { vestingLocks: vestingModels } = require("../dicts/chainToModelDict");
@@ -25,6 +25,11 @@ const eventList = [
     name: "LockTransferred",
     creator: handleVestingLockTransfer,
     reverter: handleVestingLockTransferRevert,
+  },
+  {
+    name: "TokensBurned",
+    creator: handleTokensBurn,
+    reverter: handleTokensBurnRevert,
   },
 ];
 
