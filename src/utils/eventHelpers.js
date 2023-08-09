@@ -7,7 +7,7 @@ async function getEvents(eventList, fromBlock, toBlock, web3, chainId, contract,
     })
     .then(async (events) => {
       for (let event of events) {
-        await eventList[0].handler(event, web3, chainId, contract, schema);
+        await eventList[0].creator(event, web3, chainId, contract, schema);
       }
       // Loop through each event
       for (let i = 1; i < eventList.length; i++) {
@@ -18,7 +18,7 @@ async function getEvents(eventList, fromBlock, toBlock, web3, chainId, contract,
           })
           .then((events) => {
             for (let event of events) {
-              eventList[i].handler(event, web3, chainId, contract, schema);
+              eventList[i].creator(event, web3, chainId, contract, schema);
             }
           });
       }

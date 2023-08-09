@@ -108,15 +108,15 @@ async function handleLiquidityLockWithdrawal(event, web3, chainId, contract, sch
   const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash });
 
   if (lock && !found) {
-    const withdrawer = event.returnValues.withdrawer;
+    const withdrawer = event.returnValues.owner;
     const amount = event.returnValues.amount;
     const blockNumber = event.blockNumber;
     const lockInstance = await contract.methods.getLock(nonce).call();
 
     const { timestamp } = await web3.eth.getBlock(blockNumber);
     // Update lock info
-    lock.lockInfo.currentAmount = lockInstance[4];
-    lock.lockInfo.withdrawnAmount = lock.lockInfo.depositedAmount - lockInstance[4];
+    lock.lockInfo.currentAmount = lockInstance[3];
+    lock.lockInfo.withdrawnAmount = lock.lockInfo.depositedAmount - lockInstance[3];
 
     // Push withdraw instance
     lock.lockInfo.withdraws.push({ withdrawer: withdrawer.toLowerCase(), amount: amount, block: blockNumber, time: timestamp, hash: hash.toLowerCase() });
@@ -135,8 +135,8 @@ async function handleLiquidityLockWithdrawalRevert(event, web3, chainId, contrac
     const lockInstance = await contract.methods.getLock(nonce).call();
 
     // Update lock info
-    lock.lockInfo.currentAmount = lockInstance[4];
-    lock.lockInfo.withdrawnAmount = lock.lockInfo.depositedAmount - lockInstance[4];
+    lock.lockInfo.currentAmount = lockInstance[3];
+    lock.lockInfo.withdrawnAmount = lock.lockInfo.depositedAmount - lockInstance[3];
 
     // Find the withdraw instance and remove from database
     for (let [i, withdraw] of lock.lockInfo.withdraws.entries()) {
@@ -147,7 +147,7 @@ async function handleLiquidityLockWithdrawalRevert(event, web3, chainId, contrac
   }
 }
 
-async function handleLiquidityLockTransfer(event, web3, contract, schema) {
+async function handleLiquidityLockTransfer(event, web3, chainId, contract, schema) {
   const nonce = event.returnValues.nonce;
   const hash = event.transactionHash;
 
@@ -168,7 +168,7 @@ async function handleLiquidityLockTransfer(event, web3, contract, schema) {
     lock.save();
   }
 }
-async function handleLiquidityLockTransferRevert(event, web3, contract, schema) {
+async function handleLiquidityLockTransferRevert(event, web3, chainId, contract, schema) {
   const nonce = event.returnValues.nonce;
   const hash = event.transactionHash;
 
@@ -264,8 +264,8 @@ async function handleLiquidityLockSplit(event, web3, chainId, contract, schema) 
 
   if (lock && !found) {
     // Update lock info
-    lock.lockInfo.depositedAmount = lockInstance[3];
-    lock.lockInfo.currentAmount = lockInstance[4];
+    lock.lockInfo.depositedAmount = lockInstance[2];
+    lock.lockInfo.currentAmount = lockInstance[3];
     // Push withdraw instance
     lock.lockInfo.splits.push({ from: from.toLowerCase(), to: to.toLowerCase(), amount: amount, block: blockNumber, newNonce: newNonce, time: timestamp, hash: hash.toLowerCase() });
     lock.save();
@@ -280,22 +280,23 @@ async function handleLiquidityLockSplit(event, web3, chainId, contract, schema) 
     await schema.create({
       nonce: newNonce,
       chain: chainId,
+      dex: lock.dexName,
+      token0: lock.token0,
+      token1: lock.token1,
       tokenInfo: {
-        address: lock.tokenInfo.address,
+        address: lock.tokenInfo.address.toLowerCase(),
         name: lock.tokenInfo.name,
         symbol: lock.tokenInfo.symbol,
         supply: lock.tokenInfo.supply,
         decimals: lock.tokenInfo.decimals,
-        logo: lock.tokenInfo.logo && lock.tokenInfo.logo,
       },
       lockInfo: {
         owner: splitLock[1].toLowerCase(),
-        withdrawalAddress: splitLock[2].toLowerCase(),
-        depositedAmount: splitLock[3],
-        currentAmount: splitLock[4],
-        withdrawnAmount: BigInt(splitLock[3]) - BigInt(splitLock[4]),
-        unlockDate: splitLock[5],
-        creation: { creator: from.toLowerCase(), amount: amount, unlockDate: splitLock[5], block: blockNumber, time: timestamp, hash: hash.toLowerCase() },
+        depositedAmount: splitLock[2],
+        currentAmount: splitLock[3],
+        withdrawnAmount: 0,
+        unlockDate: splitLock[4],
+        creation: { creator: from.toLowerCase(), amount: splitLock[3], unlockDate: splitLock[4], block: blockNumber, time: timestamp, hash: hash.toLowerCase() },
       },
     });
   }
@@ -309,17 +310,12 @@ async function handleLiquidityLockSplitRevert(event, web3, chainId, contract, sc
   const lock = await schema.findOne({ nonce: nonce });
   const found = await schema.exists({ nonce: nonce, "lockInfo.splits.hash": hash });
 
-  const from = event.returnValues.from;
-  const to = event.returnValues.to;
-  const amount = event.returnValues.amount;
-  const blockNumber = event.blockNumber;
   const lockInstance = await contract.methods.getLock(nonce).call();
-  const { timestamp } = await web3.eth.getBlock(blockNumber);
 
   if (lock && found) {
     // Update lock info
-    lock.lockInfo.depositedAmount = lockInstance[3];
-    lock.lockInfo.currentAmount = lockInstance[4];
+    lock.lockInfo.depositedAmount = lockInstance[2];
+    lock.lockInfo.currentAmount = lockInstance[3];
 
     // Find the relock instance and remove from database
     for (let [i, split] of lock.lockInfo.splits.entries()) {

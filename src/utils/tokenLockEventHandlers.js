@@ -298,12 +298,11 @@ async function handleTokenLockSplit(event, web3, chainId, contract, schema) {
       nonce: newNonce,
       chain: chainId,
       tokenInfo: {
-        address: lock.tokenInfo.address,
+        address: lock.tokenInfo.address.toLowerCase(),
         name: lock.tokenInfo.name,
         symbol: lock.tokenInfo.symbol,
         supply: lock.tokenInfo.supply,
         decimals: lock.tokenInfo.decimals,
-        logo: lock.tokenInfo.logo && lock.tokenInfo.logo,
       },
       lockInfo: {
         owner: splitLock[1].toLowerCase(),
