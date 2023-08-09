@@ -5,7 +5,7 @@ const metaData = require("../models/metaData");
 
 const handleCoinGekoLogos = async (address, chain) => {
   try {
-    const found = await metaData.exists({ chain: chain, address: address });
+    const found = await metaData.exists({ chain: chain, address: address.toLowerCase() });
     if (!found) {
       try {
         const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`);
