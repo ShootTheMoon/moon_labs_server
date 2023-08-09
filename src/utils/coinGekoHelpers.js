@@ -14,8 +14,6 @@ const handleCoinGekoLogos = async (address, chain) => {
       } catch (err) {
         // console.log(err);
       }
-    } else {
-      console.log("exists");
     }
   } catch (err) {
     console.log(err);
