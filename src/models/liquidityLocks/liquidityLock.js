@@ -7,7 +7,7 @@ const createLiquidityLockSchema = (name) => {
     unlockDate: { type: Number, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const lockTransfer = new mongoose.Schema({
@@ -15,7 +15,7 @@ const createLiquidityLockSchema = (name) => {
     to: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const split = new mongoose.Schema({
@@ -25,7 +25,7 @@ const createLiquidityLockSchema = (name) => {
     newNonce: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const relock = new mongoose.Schema({
@@ -34,7 +34,7 @@ const createLiquidityLockSchema = (name) => {
     unlockTime: { type: Number, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const withdraw = new mongoose.Schema({
@@ -42,12 +42,12 @@ const createLiquidityLockSchema = (name) => {
     amount: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const liquidityLocks = new mongoose.Schema(
     {
-      nonce: { type: Number, required: true },
+      nonce: { type: Number, required: true, unique: true },
       chain: { type: Number, required: true },
       dex: { type: String, require: true },
       token0: { address: { type: String, require: true }, symbol: { type: String, require: true }, name: { type: String, require: true }, decimals: { type: Number, require: true } },

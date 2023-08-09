@@ -8,7 +8,7 @@ const createVestingLockSchema = (name) => {
     endDate: { type: Number, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const lockTransfer = new mongoose.Schema({
@@ -16,7 +16,7 @@ const createVestingLockSchema = (name) => {
     to: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const withdrawalTransfer = new mongoose.Schema({
@@ -24,7 +24,7 @@ const createVestingLockSchema = (name) => {
     to: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const split = new mongoose.Schema({
@@ -34,7 +34,7 @@ const createVestingLockSchema = (name) => {
     newNonce: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const relock = new mongoose.Schema({
@@ -44,7 +44,7 @@ const createVestingLockSchema = (name) => {
     endTime: { type: Number, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const withdraw = new mongoose.Schema({
@@ -52,12 +52,12 @@ const createVestingLockSchema = (name) => {
     amount: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true },
+    hash: { type: String, required: true, unique: true },
   });
 
   const tokenLocks = new mongoose.Schema(
     {
-      nonce: { type: Number, required: true },
+      nonce: { type: Number, required: true, unique: true },
       chain: { type: Number, required: true },
       tokenInfo: {
         address: { type: String, required: true },
