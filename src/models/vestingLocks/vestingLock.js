@@ -8,7 +8,7 @@ const createVestingLockSchema = (name) => {
     endDate: { type: Number, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true, unique: true },
+    hash: { type: String, required: true, sparse: true },
   });
 
   const lockTransfer = new mongoose.Schema({
@@ -16,7 +16,7 @@ const createVestingLockSchema = (name) => {
     to: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true, unique: true },
+    hash: { type: String, required: true, sparse: true },
   });
 
   const withdraw = new mongoose.Schema({
@@ -24,7 +24,7 @@ const createVestingLockSchema = (name) => {
     amount: { type: String, required: true },
     block: { type: Number, required: true },
     time: { type: Number, required: true },
-    hash: { type: String, required: true, unique: true },
+    hash: { type: String, required: true, sparse: true },
   });
 
   const vestingLocks = new mongoose.Schema(

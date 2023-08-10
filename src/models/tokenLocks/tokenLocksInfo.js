@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const tokenBurn = new mongoose.Schema({
   amount: { type: String, required: true },
-  hash: { type: String, required: true, unique: true },
+  hash: { type: String, required: true, sparse: true },
 });
 
 const tokenLocksInfo = new mongoose.Schema(
