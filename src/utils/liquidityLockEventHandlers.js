@@ -108,7 +108,7 @@ async function handleLiquidityLockWithdrawal(event, web3, chainId, contract, sch
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash.toLowerCase() });
 
   if (lock && !found) {
     const withdrawer = event.returnValues.owner;
@@ -132,7 +132,7 @@ async function handleLiquidityLockWithdrawalRevert(event, web3, chainId, contrac
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash.toLowerCase() });
 
   if (lock && found) {
     const lockInstance = await contract.methods.getLock(nonce).call();
@@ -143,7 +143,7 @@ async function handleLiquidityLockWithdrawalRevert(event, web3, chainId, contrac
 
     // Find the withdraw instance and remove from database
     for (let [i, withdraw] of lock.lockInfo.withdraws.entries()) {
-      if (withdraw.hash == hash) lock.lockInfo.withdraws.splice(i, 1);
+      if (withdraw.hash == hash.toLowerCase()) lock.lockInfo.withdraws.splice(i, 1);
     }
 
     lock.save();
@@ -155,7 +155,7 @@ async function handleLiquidityLockTransfer(event, web3, chainId, contract, schem
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash.toLowerCase() });
 
   if (lock && !found) {
     const from = event.returnValues.from;
@@ -171,12 +171,13 @@ async function handleLiquidityLockTransfer(event, web3, chainId, contract, schem
     lock.save();
   }
 }
+
 async function handleLiquidityLockTransferRevert(event, web3, chainId, contract, schema) {
   const nonce = event.returnValues.nonce;
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash.toLowerCase() });
 
   if (lock && found) {
     const lockInstance = await contract.methods.getLock(nonce).call();
@@ -185,7 +186,7 @@ async function handleLiquidityLockTransferRevert(event, web3, chainId, contract,
 
     // Find the transfer instance and remove from database
     for (let [i, transfer] of lock.lockInfo.lockTransfers.entries()) {
-      if (transfer.hash == hash) lock.lockInfo.lockTransfers.splice(i, 1);
+      if (transfer.hash == hash.toLowerCase()) lock.lockInfo.lockTransfers.splice(i, 1);
     }
 
     lock.save();
@@ -197,7 +198,7 @@ async function handleLiquidityLockRelock(event, web3, chainId, contract, schema)
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.relocks.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.relocks.hash": hash.toLowerCase() });
 
   if (lock && !found) {
     const owner = event.returnValues.owner;
@@ -226,7 +227,7 @@ async function handleLiquidityLockRelockRevert(event, web3, chainId, contract, s
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.relocks.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.relocks.hash": hash.toLowerCase() });
 
   if (lock && found) {
     const unlockTime = event.returnValues.unlockTime ? event.returnValues.unlockTime : event.returnValues.unlockDate;
@@ -243,7 +244,7 @@ async function handleLiquidityLockRelockRevert(event, web3, chainId, contract, s
 
     // Find the relock instance and remove from database
     for (let [i, relock] of lock.lockInfo.relocks.entries()) {
-      if (relock.hash == hash) lock.lockInfo.relocks.splice(i, 1);
+      if (relock.hash == hash.toLowerCase()) lock.lockInfo.relocks.splice(i, 1);
     }
 
     lock.save();
@@ -256,7 +257,7 @@ async function handleLiquidityLockSplit(event, web3, chainId, contract, schema) 
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.splits.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.splits.hash": hash.toLowerCase() });
 
   const from = event.returnValues.from;
   const to = event.returnValues.to;
@@ -311,7 +312,7 @@ async function handleLiquidityLockSplitRevert(event, web3, chainId, contract, sc
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.splits.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.splits.hash": hash.toLowerCase() });
 
   const lockInstance = await contract.methods.getLock(nonce).call();
 
@@ -322,7 +323,7 @@ async function handleLiquidityLockSplitRevert(event, web3, chainId, contract, sc
 
     // Find the relock instance and remove from database
     for (let [i, split] of lock.lockInfo.splits.entries()) {
-      if (split.hash == hash) lock.lockInfo.splits.splice(i, 1);
+      if (split.hash == hash.toLowerCase()) lock.lockInfo.splits.splice(i, 1);
     }
 
     lock.save();
@@ -338,9 +339,9 @@ async function handleTokensBurn(event, web3, chainId, contract, schema) {
   const hash = event.transactionHash;
 
   const lockInfo = await liquidityLocksInfo.findOne({ chain: chainId });
-  const found = await liquidityLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash });
+  const found = await liquidityLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash.toLowerCase() });
   if (lockInfo && !found) {
-    lockInfo.tokenBurns.push({ amount: amount, hash: hash });
+    lockInfo.tokenBurns.push({ amount: amount, hash: hash.toLowerCase() });
 
     lockInfo.save();
   }
@@ -350,11 +351,11 @@ async function handleTokensBurnRevert(event, web3, chainId, contract, schema) {
   const hash = event.transactionHash;
 
   const lockInfo = await liquidityLocksInfo.findOne({ chain: chainId });
-  const found = await liquidityLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash });
+  const found = await liquidityLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash.toLowerCase() });
   if (lockInfo && found) {
     // Find the burn instance and remove from database
     for (let [i, burn] of lockInfo.tokenBurns.entries()) {
-      if (burn.hash == hash) lockInfo.tokenBurns.splice(i, 1);
+      if (burn.hash == hash.toLowerCase()) lockInfo.tokenBurns.splice(i, 1);
     }
 
     lockInfo.save();

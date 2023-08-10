@@ -70,7 +70,7 @@ async function handleVestingLockWithdrawal(event, web3, chainId, contract, schem
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash.toLowerCase() });
 
   if (lock && !found) {
     const withdrawer = event.returnValues.owner;
@@ -94,7 +94,7 @@ async function handleVestingLockWithdrawalRevert(event, web3, chainId, contract,
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.withdraws.hash": hash.toLowerCase() });
 
   if (lock && found) {
     const lockInstance = await contract.methods.getInstance(nonce).call();
@@ -106,7 +106,7 @@ async function handleVestingLockWithdrawalRevert(event, web3, chainId, contract,
 
     // Find the withdraw instance and remove from database
     for (let [i, withdraw] of lock.lockInfo.withdraws.entries()) {
-      if (withdraw.hash == hash) lock.lockInfo.withdraws.splice(i, 1);
+      if (withdraw.hash == hash.toLowerCase()) lock.lockInfo.withdraws.splice(i, 1);
     }
 
     lock.save();
@@ -118,7 +118,7 @@ async function handleVestingLockTransfer(event, web3, chainId, contract, schema)
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash.toLowerCase() });
 
   if (lock && !found) {
     const from = event.returnValues.from;
@@ -140,7 +140,7 @@ async function handleVestingLockTransferRevert(event, web3, chainId, contract, s
   const hash = event.transactionHash;
 
   const lock = await schema.findOne({ nonce: nonce });
-  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash });
+  const found = await schema.exists({ nonce: nonce, "lockInfo.lockTransfers.hash": hash.toLowerCase() });
 
   if (lock && found) {
     const lockInstance = await contract.methods.getInstance(nonce).call();
@@ -149,7 +149,7 @@ async function handleVestingLockTransferRevert(event, web3, chainId, contract, s
 
     // Find the transfer instance and remove from database
     for (let [i, transfer] of lock.lockInfo.lockTransfers.entries()) {
-      if (transfer.hash == hash) lock.lockInfo.lockTransfers.splice(i, 1);
+      if (transfer.hash == hash.toLowerCase()) lock.lockInfo.lockTransfers.splice(i, 1);
     }
 
     lock.save();
@@ -161,9 +161,9 @@ async function handleTokensBurn(event, web3, chainId, contract, schema) {
   const hash = event.transactionHash;
 
   const lockInfo = await vestingLocksInfo.findOne({ chain: chainId });
-  const found = await vestingLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash });
+  const found = await vestingLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash.toLowerCase() });
   if (lockInfo && !found) {
-    lockInfo.tokenBurns.push({ amount: amount, hash: hash });
+    lockInfo.tokenBurns.push({ amount: amount, hash: hash.toLowerCase() });
 
     lockInfo.save();
   }
@@ -173,11 +173,11 @@ async function handleTokensBurnRevert(event, web3, chainId, contract, schema) {
   const hash = event.transactionHash;
 
   const lockInfo = await vestingLocksInfo.findOne({ chain: chainId });
-  const found = await vestingLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash });
+  const found = await vestingLocksInfo.exists({ chain: chainId, "tokenBurns.hash": hash.toLowerCase() });
   if (lockInfo && found) {
     // Find the burn instance and remove from database
     for (let [i, burn] of lockInfo.tokenBurns.entries()) {
-      if (burn.hash == hash) lockInfo.tokenBurns.splice(i, 1);
+      if (burn.hash == hash.toLowerCase()) lockInfo.tokenBurns.splice(i, 1);
     }
 
     lockInfo.save();
