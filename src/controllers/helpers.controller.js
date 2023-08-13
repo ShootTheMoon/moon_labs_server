@@ -3,7 +3,7 @@ const { web3 } = require("../utils/web3Helpers");
 const { checkValidWallet } = require("../utils/walletHelpers");
 const { price } = require("../utils/priceHelpers");
 // Service Imports
-const { getMetaDataLogo } = require("../services/helpers.service");
+const helpersServices = require("../services/helpers.service");
 
 // GET
 async function get_mlabPrice(req, res, next) {
@@ -31,10 +31,20 @@ async function get_validWallet(req, res, next) {
 
 async function get_tokenLogo(req, res, next) {
   try {
-    res.json(await getMetaDataLogo(req));
+    res.json(await helpersServices.getMetaDataLogo(req));
   } catch (err) {
     console.error(`Error with token logo controller: ${err.message}`);
     next(err);
   }
 }
-module.exports = { get_mlabPrice, get_validWallet, get_tokenLogo };
+
+async function get_lockCreation(req, res, next) {
+  try {
+    res.json(await helpersServices.get_lockCreation(req));
+  } catch (err) {
+    console.error(`Error with lock creation controller: ${err.message}`);
+    next(err);
+  }
+}
+
+module.exports = { get_mlabPrice, get_validWallet, get_tokenLogo, get_lockCreation };
