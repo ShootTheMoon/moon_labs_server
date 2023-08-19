@@ -76,6 +76,11 @@ const startEvents = async (chain) => {
 
   handleVerificationCheck(web3, chain, contract, schema);
   setListeners(eventList, web3, chain, contract, schema);
+
+  if (chain == 1) {
+    const schema = liquidityModels[8008];
+    setListeners(eventList, web3, 8008, contract, schema);
+  }
 };
 
 async function handleVerificationCheck(web3, chain, contract, schema) {

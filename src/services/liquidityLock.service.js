@@ -14,6 +14,8 @@ async function getLock(req) {
     // Desired chain
     let chain = req.query.chain;
 
+    if (nonce == 0) chain = 8008;
+
     // Get token lock from mongodb
     const liquidityLock = await liquidityModels[chain].findOne({ nonce: nonce });
     // Get liquidity locker contract
@@ -122,9 +124,11 @@ async function getLockCount(req) {
 async function getLockedPairData(req) {
   try {
     // Chain of the desired pair
-    const chain = req.query.chain;
+    let chain = req.query.chain;
     // Address of the desired pair
     const address = req.query.address;
+
+    if (address == "0xa95db1b2b07c03260b931b5bde94b84dfe57c928") chain = 8008;
 
     // Get all locks with pair address
     const liquidityLocks = await liquidityModels[chain].find({ "tokenInfo.address": address }, { nonce: 1, "lockInfo.currentAmount": 1, "lockInfo.unlockDate": 1 });

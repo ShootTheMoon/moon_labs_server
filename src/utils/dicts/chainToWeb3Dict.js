@@ -3,6 +3,7 @@ const { web3 } = require("../web3Helpers");
 
 const web3Dict = {
   1: web3.eth,
+  8008: web3.eth,
   42161: web3.arb,
   56: web3.bsc,
   43114: web3.avax,

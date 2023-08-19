@@ -1,6 +1,7 @@
 // Global Variables
 const {
   MOON_LOCK_LIQUIDITY_ADDRESS_ETH,
+  MOON_LOCK_LIQUIDITY_ADDRESS_ETH_OLD,
   MOON_LOCK_LIQUIDITY_ADDRESS_ARBITRUM,
   MOON_LOCK_LIQUIDITY_ADDRESS_AVAX,
   MOON_LOCK_LIQUIDITY_ADDRESS_GOERLI,
@@ -35,6 +36,7 @@ const { web3 } = require("../web3Helpers");
 
 const liquidityLocker = {
   1: new web3.eth.eth.Contract(moonLabsLiquidityLockerAbi, MOON_LOCK_LIQUIDITY_ADDRESS_ETH.toLowerCase()),
+  8008: new web3.eth.eth.Contract(moonLabsLiquidityLockerAbi, MOON_LOCK_LIQUIDITY_ADDRESS_ETH_OLD.toLowerCase()),
   42161: new web3.arb.eth.Contract(moonLabsLiquidityLockerAbi, MOON_LOCK_LIQUIDITY_ADDRESS_ARBITRUM.toLowerCase()),
   56: new web3.bsc.eth.Contract(moonLabsLiquidityLockerAbi, MOON_LOCK_LIQUIDITY_ADDRESS_BSC.toLowerCase()),
   43114: new web3.avax.eth.Contract(moonLabsLiquidityLockerAbi, MOON_LOCK_LIQUIDITY_ADDRESS_AVAX.toLowerCase()),
