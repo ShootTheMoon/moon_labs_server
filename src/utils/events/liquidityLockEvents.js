@@ -58,6 +58,7 @@ const eventList = [
 
 const liquidityLockEvents = async () => {
   startEvents(5);
+  startEvents(1);
 };
 
 const startEvents = async (chain) => {
