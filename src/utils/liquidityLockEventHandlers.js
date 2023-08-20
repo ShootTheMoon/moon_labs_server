@@ -9,7 +9,7 @@ const liquidityLocksInfo = require("../models/liquidityLocks/liquidityLocksInfo"
 const { handleCoinGekoLogos } = require("./coinGekoHelpers");
 
 // Dict Imports
-const { dexFactories } = require("./dicts/chainToAmmDict");
+const { dexFactoriesV2 } = require("./dicts/chainToAmmDict");
 
 async function handleLiquidityLockCreation(event, web3, chainId, contract, schema) {
   const nonce = event.returnValues.nonce;
@@ -30,7 +30,7 @@ async function handleLiquidityLockCreation(event, web3, chainId, contract, schem
     handleCoinGekoLogos(token1Contract._address, chainId);
 
     const getDexFactory = async (pairAddress, token0, token1) => {
-      const chainFactories = dexFactories[chainId];
+      const chainFactories = dexFactoriesV2[chainId];
       for (let factory of chainFactories) {
         const factoryContract = new web3.eth.Contract(factory.abi, factory.address);
         const resultAddress = await factoryContract.methods.getPair(token0, token1).call();

@@ -65,8 +65,9 @@ const eventList = [
 ];
 
 async function tokenLockEvents() {
-  startEvents(5);
   startEvents(1);
+  startEvents(42161);
+  startEvents(5);
 }
 
 async function startEvents(chain) {

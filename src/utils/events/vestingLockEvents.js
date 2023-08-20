@@ -34,8 +34,9 @@ const eventList = [
 ];
 
 const vestingLockEvents = () => {
-  startEvents(5);
   startEvents(1);
+  startEvents(42161);
+  startEvents(5);
 };
 
 const startEvents = async (chain) => {
