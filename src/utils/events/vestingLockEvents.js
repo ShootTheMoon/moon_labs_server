@@ -35,6 +35,7 @@ const eventList = [
 
 const vestingLockEvents = () => {
   startEvents(5);
+  startEvents(1);
 };
 
 const startEvents = async (chain) => {
@@ -47,6 +48,8 @@ const startEvents = async (chain) => {
       lastScannedBlock: await web3.eth.getBlockNumber(),
     });
   }
+
+
 
   const schema = vestingModels[chain];
 
