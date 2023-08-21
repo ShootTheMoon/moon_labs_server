@@ -15,7 +15,7 @@ async function getLock(req) {
     let chain = req.query.chain;
 
     // Fetch from old liquidity locker
-    if (nonce === "0") chain = 8008;
+    if (nonce === "0" && chain === "1") chain = 8008;
 
     // Get token lock from mongodb
     const liquidityLock = await liquidityModels[chain].findOne({ nonce: nonce });
