@@ -22,6 +22,7 @@ const {
 const { liquidityLocks: liquidityModels } = require("../dicts/chainToModelDict");
 const { liquidityLocker: liquidityContracts } = require("../dicts/chainToContractsDict");
 const web3Dict = require("../dicts/chainToWeb3Dict");
+const blockConf = require("../dicts/chainToBlockConf");
 
 const eventList = [
   {
@@ -75,7 +76,7 @@ const startEvents = async (chain) => {
 
   const schema = liquidityModels[chain];
 
-  if (chain != 42161) handleVerificationCheck(web3, chain, contract, schema);
+  handleVerificationCheck(web3, chain, contract, schema);
   setListeners(eventList, web3, chain, contract, schema);
 
   if (chain == 1) {
@@ -85,7 +86,7 @@ const startEvents = async (chain) => {
 };
 
 async function handleVerificationCheck(web3, chain, contract, schema) {
-  const blockBuffer = 12;
+  const blockBuffer = blockConf[chain];
   web3.eth.subscribe("newBlockHeaders", async (err, event) => {
     if (event) {
       const info = await liquidityLocksInfo.findOne({ chain: chain });

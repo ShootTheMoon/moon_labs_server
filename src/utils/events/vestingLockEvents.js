@@ -9,6 +9,7 @@ const { handleVestingLockCreation, handleTokenLockCreationRevert, handleVestingL
 const { vestingLocks: vestingModels } = require("../dicts/chainToModelDict");
 const { vestingLocker: vestingContracts } = require("../dicts/chainToContractsDict");
 const web3Dict = require("../dicts/chainToWeb3Dict");
+const blockConf = require("../dicts/chainToBlockConf");
 
 const eventList = [
   {
@@ -52,12 +53,12 @@ const startEvents = async (chain) => {
 
   const schema = vestingModels[chain];
 
-  if (chain != 42161) handleVerificationCheck(web3, chain, contract, schema);
+  handleVerificationCheck(web3, chain, contract, schema);
   setListeners(eventList, web3, chain, contract, schema);
 };
 
 async function handleVerificationCheck(web3, chain, contract, schema) {
-  const blockBuffer = 12;
+  const blockBuffer = blockConf[chain];
   web3.eth.subscribe("newBlockHeaders", async (err, event) => {
     if (event) {
       const info = await vestingLocksInfo.findOne({ chain: chain });
