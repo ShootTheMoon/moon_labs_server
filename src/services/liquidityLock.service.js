@@ -14,7 +14,8 @@ async function getLock(req) {
     // Desired chain
     let chain = req.query.chain;
 
-    if (nonce == 0) chain = 8008;
+    // Fetch from old liquidity locker
+    if (nonce === "0") chain = 8008;
 
     // Get token lock from mongodb
     const liquidityLock = await liquidityModels[chain].findOne({ nonce: nonce });
@@ -78,6 +79,19 @@ async function getLockHeaders(req) {
         .sort({ nonce: -1 })
         .skip(from)
         .limit(limit);
+
+      if (chain === "1") {
+        const liquidityLocksOld = await liquidityModels[8008]
+          .find(
+            { "lockInfo.currentAmount": { $ne: deleted.toLowerCase() == "true" ? "-1" : "0" }, "lockInfo.owner": owner ? { $eq: owner.toLowerCase() } : { $ne: "-1" }, "tokenInfo.address": address ? { $eq: address.toLowerCase() } : { $ne: "-1" } },
+            { nonce: 1, chain: 1, dex: 1, token0: 1, token1: 1, tokenInfo: 1, lockInfo: { owner: 1, withdrawalAddress: 1, currentAmount: 1, unlockDate: 1, creation: 1 } }
+          )
+          .sort({ nonce: -1 })
+          .skip(from)
+          .limit(limit);
+        liquidityLocks.push(liquidityLocksOld[0]);
+      }
+
       return { liquidityLocks };
     } else {
       return { err: "Invalid query parameters" };
@@ -99,18 +113,38 @@ async function getLockCount(req) {
 
     if (liquidityModels[chain]) {
       // Get number of active locks
-      const numOfActiveLocks = await liquidityModels[chain].collection.countDocuments({
+      let numOfActiveLocks = await liquidityModels[chain].collection.countDocuments({
         "lockInfo.owner": owner ? { $eq: owner.toLowerCase() } : { $ne: "-1" },
         "tokenInfo.address": address ? { $eq: address.toLowerCase() } : { $ne: "-1" },
         "lockInfo.currentAmount": { $gt: "0" },
       });
 
       // Get number of deleted locks
-      const numOfDeletedLocks = await liquidityModels[chain].collection.countDocuments({
+      let numOfDeletedLocks = await liquidityModels[chain].collection.countDocuments({
         "lockInfo.owner": owner ? { $eq: owner.toLowerCase() } : { $ne: "-1" },
         "tokenInfo.address": address ? { $eq: address.toLowerCase() } : { $ne: "-1" },
         "lockInfo.currentAmount": { $lte: "0" },
       });
+
+      if (chain === "1") {
+        // Get number of active locks
+        const numOfActiveLocksOld = await liquidityModels[8008].collection.countDocuments({
+          "lockInfo.owner": owner ? { $eq: owner.toLowerCase() } : { $ne: "-1" },
+          "tokenInfo.address": address ? { $eq: address.toLowerCase() } : { $ne: "-1" },
+          "lockInfo.currentAmount": { $gt: "0" },
+        });
+
+        numOfActiveLocks += numOfActiveLocksOld;
+
+        // Get number of deleted locks
+        const numOfDeletedLocksOld = await liquidityModels[8008].collection.countDocuments({
+          "lockInfo.owner": owner ? { $eq: owner.toLowerCase() } : { $ne: "-1" },
+          "tokenInfo.address": address ? { $eq: address.toLowerCase() } : { $ne: "-1" },
+          "lockInfo.currentAmount": { $lte: "0" },
+        });
+
+        numOfDeletedLocks += numOfDeletedLocksOld;
+      }
       return { numOfActiveLocks, numOfDeletedLocks };
     } else {
       return { err: "Invalid query parameters" };
@@ -128,7 +162,7 @@ async function getLockedPairData(req) {
     // Address of the desired pair
     const address = req.query.address;
 
-    if (address == "0xa95db1b2b07c03260b931b5bde94b84dfe57c928") chain = 8008;
+    if (address === "0xa95db1b2b07c03260b931b5bde94b84dfe57c928".toLowerCase()) chain = 8008;
 
     // Get all locks with pair address
     const liquidityLocks = await liquidityModels[chain].find({ "tokenInfo.address": address }, { nonce: 1, "lockInfo.currentAmount": 1, "lockInfo.unlockDate": 1 });
