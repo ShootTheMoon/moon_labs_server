@@ -36,6 +36,7 @@ const eventList = [
 
 const vestingLockEvents = () => {
   startEvents(1);
+  startEvents(56);
   startEvents(42161);
   startEvents(5);
 };
@@ -63,7 +64,7 @@ async function handleVerificationCheck(web3, chain, contract, schema) {
     if (event) {
       const info = await vestingLocksInfo.findOne({ chain: chain });
 
-      // We only want to scan blocks that have had 12 blocks of confirmation every 12 blocks
+      // We only want to scan blocks that have had x blocks of confirmation every x blocks
       if (event.number - blockBuffer * 2 > info.lastScannedBlock) {
         const fromBlock = info.lastScannedBlock;
         const toBlock = event.number - info.lastScannedBlock > 5000 ? fromBlock + 5000 : event.number - blockBuffer;
