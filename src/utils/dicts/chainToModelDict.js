@@ -22,7 +22,7 @@ const vestingLocks = {
 
 const liquidityLocks = {
   1: createLiquidityLockSchema("liquidityLocksEth"),
-  8008: createLiquidityLockSchema("liquidityLocksEth"),
+  8008: createLiquidityLockSchema("liquidityLocksEthOld"),
   42161: createLiquidityLockSchema("liquidityLocksArbitrum"),
   56: createLiquidityLockSchema("liquidityLocksBsc"),
   43114: createLiquidityLockSchema("liquidityLocksAvalanche"),
