@@ -83,7 +83,7 @@ async function startEvents(chain) {
 
   const schema = tokenModels[chain];
 
-  handleVerificationCheck(web3, chain, contract, schema);
+  if (chain != 42161) handleVerificationCheck(web3, chain, contract, schema);
   setListeners(eventList, web3, chain, contract, schema);
 }
 

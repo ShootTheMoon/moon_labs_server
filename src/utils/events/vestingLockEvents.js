@@ -50,11 +50,9 @@ const startEvents = async (chain) => {
     });
   }
 
-
-
   const schema = vestingModels[chain];
 
-  handleVerificationCheck(web3, chain, contract, schema);
+  if (chain != 42161) handleVerificationCheck(web3, chain, contract, schema);
   setListeners(eventList, web3, chain, contract, schema);
 };
 
